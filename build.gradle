@@ -22,9 +22,9 @@ allprojects {
     }
 }
 
-ext.compileSdkVersion=24
+ext.compileSdkVersion=25
 ext.buildToolsVersion="24.0.3"
-ext.minSdkVersion=8
-ext.targetSdkVersion=24
+ext.minSdkVersion=9
+ext.targetSdkVersion=25
 ext.sourceCompatibility=JavaVersion.VERSION_1_7
 ext.targetCompatibility =JavaVersion.VERSION_1_8
