@@ -30,7 +30,7 @@ Now add the gradle dependency in your application's `build.gradle`:
 
 ```groovy
 dependencies {
-    compile 'com.github.TechFreak:WizardPager:{latest_version}'
+    compile 'com.github.asimugrabi:WizardPager:{latest_version}'
 }
 ```
 
