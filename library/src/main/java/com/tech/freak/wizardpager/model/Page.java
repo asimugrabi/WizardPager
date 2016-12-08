@@ -88,6 +88,10 @@ public abstract class Page implements PageTreeNode {
         notifyDataChanged();
     }
 
+    public void clearData() {
+        mData = new Bundle();
+    }
+
     public void notifyDataChanged() {
         mCallbacks.onPageDataChanged(this);
     }

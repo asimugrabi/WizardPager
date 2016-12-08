@@ -1,6 +1,10 @@
 Wizard Pager
 =================
 
+This fork merges:
+ https://github.com/str4d/WizardPager.git
+ and https://github.com/DWorkS/AWizard
+
 ![Wizard Pager Screenshot](https://lh3.googleusercontent.com/-_-Sv3J3bdcc/UdeUUDd1TjI/AAAAAAAAEEo/yproJ-EbCJg/w412-h716-no/wizardPager.png)
 
 Wizard Pager is a library that provides an example implementation of a Wizard UI on Android, it's based of Roman Nurik's wizard pager (https://github.com/romannurik/android-wizardpager)

@@ -1,5 +1,6 @@
 /*
  * Copyright 2012 Roman Nurik
+ * Copyright 2013 Hari Krishna Dulipudi
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +30,15 @@ import android.view.View;
 import com.tech.freak.wizardpager.R;
 
 public class StepPagerStrip extends View {
+	private static final String XML_NS = "http://schemas.android.com/apk/res/android";
     private static final int[] ATTRS = new int[]{
             android.R.attr.gravity
     };
+    public static final int HORIZONTAL = 0;
+    public static final int VERTICAL = 1;
+
+    private int mOrientation = HORIZONTAL;
+
     private int mPageCount;
     private int mCurrentPage;
 
@@ -66,10 +73,23 @@ public class StepPagerStrip extends View {
         mGravity = a.getInteger(0, mGravity);
         a.recycle();
 
+        //We default to horizontal, only change if a value is explicitly specified
+        int orientation = attrs.getAttributeIntValue(XML_NS, "orientation", -1);
+        if (orientation != -1) {
+            setOrientation(orientation);
+        }
+
         final Resources res = getResources();
-        mTabWidth = res.getDimensionPixelSize(R.dimen.step_pager_tab_width);
-        mTabHeight = res.getDimensionPixelSize(R.dimen.step_pager_tab_height);
-        mTabSpacing = res.getDimensionPixelSize(R.dimen.step_pager_tab_spacing);
+        if(mOrientation == HORIZONTAL){
+            mTabWidth = res.getDimensionPixelSize(R.dimen.step_pager_tab_width);
+            mTabHeight = res.getDimensionPixelSize(R.dimen.step_pager_tab_height);
+            mTabSpacing = res.getDimensionPixelSize(R.dimen.step_pager_tab_spacing);
+        }
+        else{
+            mTabWidth = res.getDimensionPixelSize(R.dimen.step_pager_vertical_tab_width);
+            mTabHeight = res.getDimensionPixelSize(R.dimen.step_pager_vertical_tab_height);
+            mTabSpacing = res.getDimensionPixelSize(R.dimen.step_pager_vertical_tab_spacing);
+        }
 
         mPrevTabPaint = new Paint();
         mPrevTabPaint.setColor(res.getColor(R.color.step_pager_previous_tab_color));
@@ -84,6 +104,42 @@ public class StepPagerStrip extends View {
         mNextTabPaint.setColor(res.getColor(R.color.step_pager_next_tab_color));
     }
 
+    public int getOrientation() {
+        return mOrientation;
+    }
+
+    public void setOrientation(int orientation) {
+        switch (orientation) {
+            case HORIZONTAL:
+            case VERTICAL:
+                break;
+
+            default:
+                throw new IllegalArgumentException("Only HORIZONTAL and VERTICAL are valid orientations.");
+        }
+
+        if (orientation == mOrientation) {
+            return;
+        }
+
+        //Adjust scroll for new orientation
+        mOrientation = orientation;
+        final Resources res = getResources();
+        if(orientation == HORIZONTAL){
+            mTabWidth = res.getDimensionPixelSize(R.dimen.step_pager_tab_width);
+            mTabHeight = res.getDimensionPixelSize(R.dimen.step_pager_tab_height);
+            mTabSpacing = res.getDimensionPixelSize(R.dimen.step_pager_tab_spacing);
+        }
+        else{
+            mTabWidth = res.getDimensionPixelSize(R.dimen.step_pager_vertical_tab_width);
+            mTabHeight = res.getDimensionPixelSize(R.dimen.step_pager_vertical_tab_height);
+            mTabSpacing = res.getDimensionPixelSize(R.dimen.step_pager_vertical_tab_spacing);
+        }
+
+        requestLayout();
+    }
+
+
     public void setOnPageSelectedListener(OnPageSelectedListener onPageSelectedListener) {
         mOnPageSelectedListener = onPageSelectedListener;
     }
@@ -96,6 +152,14 @@ public class StepPagerStrip extends View {
             return;
         }
 
+        if (mOrientation == HORIZONTAL) {
+			onDrawX(canvas);
+		} else {
+			onDrawY(canvas);
+		}
+    }
+
+    protected void onDrawX(Canvas canvas){
         float totalWidth = mPageCount * (mTabWidth + mTabSpacing) - mTabSpacing;
         float totalLeft;
         boolean fillHorizontal = false;
@@ -137,27 +201,111 @@ public class StepPagerStrip extends View {
         for (int i = 0; i < mPageCount; i++) {
             mTempRectF.left = totalLeft + (i * (tabWidth + mTabSpacing));
             mTempRectF.right = mTempRectF.left + tabWidth;
-            canvas.drawRect(mTempRectF, i < mCurrentPage
+            Paint paint; /*= i < mCurrentPage
                     ? mPrevTabPaint
                     : (i > mCurrentPage
                             ? mNextTabPaint
                             : (i == mPageCount - 1
                                     ? mSelectedLastTabPaint
-                                    : mSelectedTabPaint)));
+                                    : mSelectedTabPaint));*/
+            if(i < mCurrentPage){
+            	paint = mPrevTabPaint;
+            }else{
+            	if (i > mCurrentPage) {
+					paint = mNextTabPaint;
+				} else {
+	            	if(i == mPageCount - 1){
+	            		paint = mSelectedLastTabPaint;
+	            	}else{
+	            		paint = mSelectedTabPaint;
+	            	}
+				}
+            }
+			canvas.drawRect(mTempRectF, paint);
+        }
+    }
+
+    protected void onDrawY(Canvas canvas){
+        if (mPageCount == 0) {
+            return;
+        }
+
+        float totalHeight = mPageCount * (mTabHeight + mTabSpacing) - mTabSpacing;
+        float totalTop;
+        boolean fillHorizontal = false;
+
+        switch (mGravity & Gravity.HORIZONTAL_GRAVITY_MASK) {
+            case Gravity.CENTER_HORIZONTAL:
+                totalTop = (getHeight() - totalHeight) / 2;
+                break;
+            case Gravity.RIGHT:
+                totalTop = getHeight() - getPaddingBottom() - totalHeight;
+                break;
+            case Gravity.FILL_HORIZONTAL:
+                totalTop = getPaddingTop();
+                //fillHorizontal = true;
+                break;
+            default:
+                totalTop = getPaddingTop();
+        }
+
+        switch (mGravity & Gravity.VERTICAL_GRAVITY_MASK) {
+            case Gravity.CENTER_VERTICAL:
+                mTempRectF.left = (int) (getWidth() - mTabWidth) / 2;
+                break;
+            case Gravity.BOTTOM:
+                mTempRectF.left = getWidth() - getPaddingRight() - mTabWidth;
+                break;
+            default:
+                mTempRectF.left = getPaddingLeft();
+        }
+
+        mTempRectF.right = mTempRectF.left + mTabWidth;
+
+        float tabHeight = mTabHeight;
+        if (fillHorizontal) {
+            tabHeight = (getWidth() - getPaddingRight() - getPaddingLeft()
+                    - (mPageCount - 1) * mTabSpacing) / mPageCount;
+        }
+
+        for (int i = 0; i < mPageCount; i++) {
+            mTempRectF.top = totalTop + (i * (tabHeight + mTabSpacing));
+            mTempRectF.bottom = mTempRectF.top + tabHeight;
+            Paint paint = i < mCurrentPage
+                    ? mPrevTabPaint
+                    : (i > mCurrentPage
+                            ? mNextTabPaint
+                            : (i == (mPageCount - 1)
+                                    ? mSelectedLastTabPaint
+                                    : mSelectedTabPaint));
+			canvas.drawRect(mTempRectF, paint);
         }
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(
-                View.resolveSize(
-                        (int) (mPageCount * (mTabWidth + mTabSpacing) - mTabSpacing)
-                                + getPaddingLeft() + getPaddingRight(),
-                        widthMeasureSpec),
-                View.resolveSize(
-                        (int) mTabHeight
-                                + getPaddingTop() + getPaddingBottom(),
-                        heightMeasureSpec));
+    	if(mOrientation == HORIZONTAL){
+            setMeasuredDimension(
+                    View.resolveSize(
+                            (int) (mPageCount * (mTabWidth + mTabSpacing) - mTabSpacing)
+                                    + getPaddingLeft() + getPaddingRight(),
+                            widthMeasureSpec),
+                    View.resolveSize(
+                            (int) mTabHeight
+                                    + getPaddingTop() + getPaddingBottom(),
+                            heightMeasureSpec));
+    	}
+    	else{
+            setMeasuredDimension(
+                    View.resolveSize(
+                            (int) mTabWidth
+                                    + getPaddingLeft() + getPaddingRight(),
+                            widthMeasureSpec),
+                    View.resolveSize(
+                    		(int) (mPageCount * (mTabHeight+ mTabSpacing) - mTabSpacing)
+                                    + getPaddingTop() + getPaddingBottom(),
+                            heightMeasureSpec));
+    	}
     }
 
     @Override
@@ -172,7 +320,14 @@ public class StepPagerStrip extends View {
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                 case MotionEvent.ACTION_MOVE:
-                    int position = hitTest(event.getX());
+                    int position;
+                    if(mOrientation == HORIZONTAL){
+                    	position = hitTestX(event.getX());
+                    }
+                    else{
+                    	position = hitTestY(event.getY());
+                    }
+
                     if (position >= 0) {
                         mOnPageSelectedListener.onPageStripSelected(position);
                     }
@@ -182,7 +337,7 @@ public class StepPagerStrip extends View {
         return super.onTouchEvent(event);
     }
 
-    private int hitTest(float x) {
+    private int hitTestX(float x) {
         if (mPageCount == 0) {
             return -1;
         }
@@ -215,10 +370,56 @@ public class StepPagerStrip extends View {
         float totalRight = totalLeft + (mPageCount * (tabWidth + mTabSpacing));
         if (x >= totalLeft && x <= totalRight && totalRight > totalLeft) {
             return (int) (((x - totalLeft) / (totalRight - totalLeft)) * mPageCount);
+         } else {
+            return -1;
+        }
+    }
+
+    private int hitTestY(float y) {
+        if (mPageCount == 0) {
+            return -1;
+        }
+
+        float totalHeight = mPageCount * (mTabHeight + mTabSpacing) - mTabSpacing;
+        float totalTop;
+        boolean fillHorizontal = false;
+
+        switch (mGravity & Gravity.HORIZONTAL_GRAVITY_MASK) {
+            case Gravity.CENTER_HORIZONTAL:
+                totalTop = (getHeight() - totalHeight) / 2;
+                break;
+            case Gravity.RIGHT:
+                totalTop = getHeight() - getPaddingBottom() - totalHeight;
+                break;
+            case Gravity.FILL_HORIZONTAL:
+                totalTop = getPaddingTop();
+                //fillHorizontal = true;
+                break;
+            default:
+                totalTop = getPaddingTop();
+        }
+
+        float tabWidth = mTabHeight;
+        if (fillHorizontal) {
+            tabWidth = (getWidth() - getPaddingRight() - getPaddingLeft()
+                    - (mPageCount - 1) * mTabSpacing) / mPageCount;
+        }
+
+        float totalBottom = totalTop + (mPageCount * (tabWidth + mTabSpacing));
+        if (y >= totalTop && y <= totalBottom && totalBottom > totalTop) {
+            return (int) (((y - totalTop) / (totalBottom - totalTop)) * mPageCount);
         } else {
             return -1;
         }
     }
+
+//    public void setReviewPagePosition(int page) {
+//    	mReviewPage = page;
+//	}
+//
+//    public void setDonePagePosition(int page) {
+//    	mDonePage = page;
+//	}
 
     public void setCurrentPage(int currentPage) {
         mCurrentPage = currentPage;

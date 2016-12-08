@@ -16,11 +16,6 @@
 
 package com.tech.freak.wizardpager.ui;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
@@ -32,17 +27,23 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import com.tech.freak.wizardpager.R;
 import com.tech.freak.wizardpager.model.MultipleFixedChoicePage;
 import com.tech.freak.wizardpager.model.Page;
 
-public class MultipleChoiceFragment extends ListFragment {
-    private static final String ARG_KEY = "key";
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+public class MultipleChoiceFragment extends ListFragment {
+    protected static final String ARG_KEY = "key";
+
+    protected List<String> mChoices;
+    protected Page mPage;
     private PageFragmentCallbacks mCallbacks;
     private String mKey;
-    private List<String> mChoices;
-    private Page mPage;
 
     public static MultipleChoiceFragment create(String key) {
         Bundle args = new Bundle();

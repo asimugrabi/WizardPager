@@ -16,9 +16,6 @@
 
 package com.tech.freak.wizardpager.ui;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,17 +26,21 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import com.tech.freak.wizardpager.R;
 import com.tech.freak.wizardpager.model.Page;
 import com.tech.freak.wizardpager.model.SingleFixedChoicePage;
 
-public class SingleChoiceFragment extends ListFragment {
-    private static final String ARG_KEY = "key";
+import java.util.ArrayList;
+import java.util.List;
 
+public class SingleChoiceFragment extends ListFragment {
+    protected static final String ARG_KEY = "key";
+
+    protected List<String> mChoices;
+    protected Page mPage;
     private PageFragmentCallbacks mCallbacks;
-    private List<String> mChoices;
     private String mKey;
-    private Page mPage;
 
     public static SingleChoiceFragment create(String key) {
         Bundle args = new Bundle();
@@ -70,7 +71,7 @@ public class SingleChoiceFragment extends ListFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_page, container, false);
         ((TextView) rootView.findViewById(android.R.id.title)).setText(mPage.getTitle());
 
